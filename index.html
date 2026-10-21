@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Planilha de Energia da Casa</title>
+<style>
+  :root{--fundo:#0d1117;--cartao:#161b22;--borda:#30363d;--txt:#e6edf3;--sub:#9da7b3}
+  body{margin:0;font-family:-apple-system,system-ui,Roboto,Arial,sans-serif;background:var(--fundo);color:var(--txt)}
+  main{max-width:440px;margin:0 auto;padding:28px 16px}
+  h1{font-size:24px;margin:0 0 6px}
+  p.sub{color:var(--sub);margin:0 0 24px;font-size:15px}
+  .cartao{background:var(--cartao);border:1px solid var(--borda);border-radius:14px;padding:18px;margin-bottom:16px}
+  .cartao h2{font-size:17px;margin:0 0 6px}
+  .cartao p{color:var(--sub);font-size:14px;margin:0 0 14px}
+  a.botao,button{display:block;width:100%;box-sizing:border-box;text-align:center;padding:14px;border-radius:10px;border:0;font-size:17px;font-weight:600;text-decoration:none;cursor:pointer;font-family:inherit}
+  a.botao{background:#f5b82e;color:#111}
+  button{background:#3b82f6;color:#fff;margin-top:10px}
+  button:disabled{opacity:.6}
+  input{width:100%;box-sizing:border-box;padding:13px;border-radius:10px;border:1px solid var(--borda);background:var(--fundo);color:var(--txt);font-size:17px}
+  #msg{margin-top:12px;font-size:15px;min-height:20px}
+  .ok{color:#3fb950}.erro{color:#f85149}
+  #semlink{display:none}
+</style>
+</head>
+<body><main>
+  <h1>Planilha de Energia da Casa</h1>
+  <div id="comlink">
+    <p class="sub">Versão completa do painel do corredor, com a explicação de cada cálculo. Atualizada a cada hora.</p>
+    <div class="cartao">
+      <h2>Receber por e-mail</h2>
+      <p>Melhor para abrir no computador, no Excel.</p>
+      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="seu e-mail">
+      <button id="enviar">Enviar a planilha</button>
+      <div id="msg"></div>
+    </div>
+    <div class="cartao">
+      <h2>Baixar aqui</h2>
+      <p>Baixa o arquivo Excel neste aparelho.</p>
+      <a class="botao" id="baixar" href="#" rel="noreferrer">Baixar planilha (.xlsx)</a>
+    </div>
+  </div>
+  <p class="sub" id="semlink">Abra esta página pelo QR code do painel do corredor.</p>
+<script>
+// O ID do arquivo vem só no QR, depois do "#": não fica neste repositório nem é enviado ao GitHub.
+var API = 'https://script.google.com/macros/s/AKfycbxSB4k1WGBfKXmpbqao3QlDMG_Epfhse42j9IlnmKDLvqDwzmVj5fwxljUFzqxU4msr1Q/exec';
+var arq = (new URLSearchParams(location.hash.slice(1))).get('arq') || '';
+if (!/^[\w-]{20,}$/.test(arq)) {
+  document.getElementById('comlink').style.display = 'none';
+  document.getElementById('semlink').style.display = 'block';
+} else {
+  document.getElementById('baixar').href = 'https://drive.google.com/uc?export=download&id=' + arq;
+}
+document.getElementById('enviar').onclick = function () {
+  var b = this, m = document.getElementById('msg');
+  b.disabled = true; m.className = ''; m.textContent = 'Enviando...';
+  // text/plain evita a pré-verificação de CORS; sem cookies, então a conta Google do celular não interfere.
+  fetch(API, {method: 'POST', body: JSON.stringify({arq: arq, email: document.getElementById('email').value}),
+              headers: {'Content-Type': 'text/plain;charset=utf-8'}, credentials: 'omit', redirect: 'follow'})
+    .then(function (r) { return r.json(); })
+    .then(function (r) { m.className = r.ok ? 'ok' : 'erro'; m.textContent = r.msg; })
+    .catch(function () { m.className = 'erro'; m.textContent = 'Não deu certo. Tente de novo ou use o botão Baixar.'; })
+    .then(function () { b.disabled = false; });
+};
+</script>
+</main></body></html>
